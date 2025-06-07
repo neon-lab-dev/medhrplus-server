@@ -161,6 +161,7 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
 
+  
   // Generate token manually
   const token = user.getJWTToken();
 

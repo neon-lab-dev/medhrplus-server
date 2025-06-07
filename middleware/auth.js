@@ -14,18 +14,17 @@ const employeer = require("../models/employeer");
 
 //for employee
 exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
-  const token = req.cookies;
+  const authHeader = req.headers.authorization;
 
-  if (!token[EMPLOYEE_AUTH_TOKEN]) {
-    return next(new ErrorHandler("Please Login as Employee", 401));
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next(new ErrorHandler("Please login as Employee", 401));
   }
+
+  const token = authHeader.split(" ")[1];
 
   let decodedData;
   try {
-    decodedData = jwt.verify(
-      token[EMPLOYEE_AUTH_TOKEN],
-      process.env.JWT_SECRET
-    );
+    decodedData = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     return next(
       new ErrorHandler("Invalid or expired token, please login again", 401)
@@ -46,6 +45,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
 
   next();
 });
+
 
 //for employeer
 exports.isAuthenticatedEmployeer = catchAsyncErrors(async (req, res, next) => {
