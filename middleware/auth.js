@@ -46,7 +46,6 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   next();
 });
 
-
 //for employeer
 exports.isAuthenticatedEmployeer = catchAsyncErrors(async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -81,7 +80,6 @@ exports.isAuthenticatedEmployeer = catchAsyncErrors(async (req, res, next) => {
   next();
 });
 
-
 exports.isAuthenticatedAdmin = catchAsyncErrors(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -115,48 +113,49 @@ exports.isAuthenticatedAdmin = catchAsyncErrors(async (req, res, next) => {
   next();
 });
 
+exports.isAuthenticatedAdminOrEmployer = catchAsyncErrors(
+  async (req, res, next) => {
+    const authHeader = req.headers.authorization;
 
-exports.isAuthenticatedAdminOrEmployer = catchAsyncErrors(async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return next(new ErrorHandler("Please login as Admin or Employer", 401));
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  let decodedData;
-  try {
-    decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (error) {
-    return next(
-      new ErrorHandler("Invalid or expired token, please login again", 401)
-    );
-  }
-
-  if (!decodedData || !decodedData.id || !decodedData.role) {
-    return next(
-      new ErrorHandler("Invalid token data, please login again", 401)
-    );
-  }
-
-  if (decodedData.role === "admin") {
-    const admin = await Admin.findById(decodedData.id);
-    if (!admin) {
-      return next(new ErrorHandler("Admin not found", 404));
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return next(new ErrorHandler("Please login as Admin or Employer", 401));
     }
-    req.admin = admin;
-    return next();
-  }
 
-  if (decodedData.role === "employer") {
-    const employer = await Employeer.findById(decodedData.id);
-    if (!employer) {
-      return next(new ErrorHandler("Employer not found", 404));
+    const token = authHeader.split(" ")[1];
+
+    let decodedData;
+    try {
+      decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return next(
+        new ErrorHandler("Invalid or expired token, please login again", 401)
+      );
     }
-    req.user = employer;
-    return next();
-  }
 
-  return next(new ErrorHandler("Unauthorized role", 403));
-});
+    if (!decodedData || !decodedData.id || !decodedData.role) {
+      return next(
+        new ErrorHandler("Invalid token data, please login again", 401)
+      );
+    }
+
+    if (decodedData.role === "admin") {
+      const admin = await Admin.findById(decodedData.id);
+      if (!admin) {
+        return next(new ErrorHandler("Admin not found", 404));
+      }
+      req.admin = admin;
+      return next();
+    }
+
+    if (decodedData.role === "employer") {
+      const employer = await Employeer.findById(decodedData.id);
+      if (!employer) {
+        return next(new ErrorHandler("Employer not found", 404));
+      }
+      req.user = employer;
+      return next();
+    }
+
+    return next(new ErrorHandler("Unauthorized role", 403));
+  }
+);
