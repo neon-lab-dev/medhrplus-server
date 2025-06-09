@@ -132,7 +132,7 @@ exports.isAuthenticatedAdminOrEmployer = catchAsyncErrors(
       );
     }
 
-    if (!decodedData || !decodedData.id || !decodedData.role) {
+    if (!decodedData || !decodedData.id) {
       return next(
         new ErrorHandler("Invalid token data, please login again", 401)
       );
@@ -147,7 +147,7 @@ exports.isAuthenticatedAdminOrEmployer = catchAsyncErrors(
       return next();
     }
 
-    if (decodedData.role === "employer") {
+    if (decodedData.role === "employeer") {
       const employer = await Employeer.findById(decodedData.id);
       if (!employer) {
         return next(new ErrorHandler("Employer not found", 404));

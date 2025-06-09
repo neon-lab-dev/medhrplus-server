@@ -208,6 +208,7 @@ exports.loginEmployeer = catchAsyncErrors(async (req, res, next) => {
       email: user.email,
       phoneNo: user.phoneNo,
       verified: user.verified,
+      role : user.role,
     },
     accessToken: token,
   });
