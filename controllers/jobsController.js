@@ -340,36 +340,28 @@ MedHr Plus 🏅
 //get all employee job
 exports.getAllEmployeeJob = catchAsyncErrors(async (req, res, next) => {
   const resultPerPage = 15;
-  const objectId = mongoose.Types.ObjectId(req.user.id);
+  const objectId = new mongoose.Types.ObjectId(req.user.id);
 
-  const jobsCount = await Jobs.countDocuments({
+  const filterQuery = {
     applicants: {
       $elemMatch: {
         employee: objectId,
       },
     },
-  });
+  };
 
-  const apiFeature = new ApiFeatures(
-    Jobs.find({
-      applicants: {
-        $elemMatch: {
-          employee: objectId,
-        },
-      },
-    }),
-    req.query
-  )
+  const jobsCount = await Jobs.countDocuments(filterQuery);
+
+  const apiFeature = new ApiFeatures(Jobs.find(filterQuery), req.query)
     .search()
     .filter();
-
-  let jobs = await apiFeature.query;
-
-  let filteredJobsCount = jobs.length;
+  // ✅ Get total after filters (before pagination)
+  const jobsBeforePagination = await apiFeature.query.clone();
+  const filteredJobsCount = jobsBeforePagination.length;
 
   apiFeature.pagination(resultPerPage);
 
-  jobs = await apiFeature.query;
+  const jobs = await apiFeature.query;
 
   res.status(200).json({
     success: true,
