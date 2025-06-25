@@ -363,7 +363,7 @@ exports.EnterUserDetails = catchAsyncErrors(async (req, res, next) => {
     areasOfInterests,
     currentlyLookingFor,
     interestedCountries,
-    interestedDepartment,
+    interestedDepartments,
     address,
     education,
     experience,
@@ -385,7 +385,7 @@ exports.EnterUserDetails = catchAsyncErrors(async (req, res, next) => {
   if (areasOfInterests) updateFields.areasOfInterests = areasOfInterests;
   if (currentlyLookingFor)updateFields.currentlyLookingFor = currentlyLookingFor;
   if (interestedCountries) updateFields.interestedCountries = interestedCountries;
-  if (interestedDepartment) updateFields.interestedDepartment = interestedDepartment;
+  if (interestedDepartments) updateFields.interestedDepartments = interestedDepartments;
   if (address) updateFields.address = address;
   if (education) updateFields.education = education;
   if (experience) updateFields.experience = experience;

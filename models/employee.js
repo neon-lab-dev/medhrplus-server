@@ -64,7 +64,7 @@ const empSchema = new mongoose.Schema({
       type: String,
     },
   ],
-  interestedDepartment: [
+  interestedDepartments: [
     {
       type: String,
     },
