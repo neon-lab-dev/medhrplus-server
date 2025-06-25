@@ -362,6 +362,8 @@ exports.EnterUserDetails = catchAsyncErrors(async (req, res, next) => {
     preferredLanguages,
     areasOfInterests,
     currentlyLookingFor,
+    interestedCountries,
+    interestedDepartment,
     address,
     education,
     experience,
@@ -372,21 +374,18 @@ exports.EnterUserDetails = catchAsyncErrors(async (req, res, next) => {
     interests,
   } = req.body;
 
-  // Assuming req.user contains the authenticated user info
   const userId = req.user.id;
-
-  // Create an empty object to hold the fields that the user provided
   const updateFields = {};
 
-  // Dynamically add fields to updateFields if they are provided in the request
   if (dob) updateFields.dob = dob;
   if (designation) updateFields.designation = designation;
   if (gender) updateFields.gender = gender;
   if (guardian) updateFields.guardian = guardian;
   if (preferredLanguages) updateFields.preferredLanguages = preferredLanguages;
   if (areasOfInterests) updateFields.areasOfInterests = areasOfInterests;
-  if (currentlyLookingFor)
-    updateFields.currentlyLookingFor = currentlyLookingFor;
+  if (currentlyLookingFor)updateFields.currentlyLookingFor = currentlyLookingFor;
+  if (interestedCountries) updateFields.interestedCountries = interestedCountries;
+  if (interestedDepartment) updateFields.interestedDepartment = interestedDepartment;
   if (address) updateFields.address = address;
   if (education) updateFields.education = education;
   if (experience) updateFields.experience = experience;
@@ -396,7 +395,6 @@ exports.EnterUserDetails = catchAsyncErrors(async (req, res, next) => {
   if (socialLinks) updateFields.socialLinks = socialLinks;
   if (interests) updateFields.interests = interests;
 
-  // Update user details in the database only with the provided fields
   const updatedUser = await Emp.findByIdAndUpdate(userId, updateFields, {
     new: true,
     runValidators: true,

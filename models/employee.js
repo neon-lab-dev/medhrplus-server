@@ -64,6 +64,16 @@ const empSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  interestedDepartment: [
+    {
+      type: String,
+    },
+  ],
+  interestedCountries: [
+    {
+      type: String,
+    },
+  ],
   address: {
       street: { type: String },
       city: { type: String },
