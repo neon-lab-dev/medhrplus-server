@@ -29,8 +29,10 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
     city,
   } = req.body;
 
-  const userId = req.user.id;
-  const user = req.user;
+  const userId = req?.user?.id || req?.admin?.id;
+  const user = req.user || req.admin;
+
+  console.log(user);
 
   if (
     !title ||
@@ -54,11 +56,29 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Please Enter All Fields", 400));
   }
 
-  const websiteLink = user.companyDetails[0].websiteLink
-    ? user.companyDetails[0].websiteLink
-    : "";
+  // Safely get websiteLink
+  const websiteLink =
+    user.companyDetails &&
+    Array.isArray(user.companyDetails) &&
+    user.companyDetails.length > 0 &&
+    user.companyDetails[0].websiteLink
+      ? user.companyDetails[0].websiteLink
+      : "";
 
-  job = await Jobs.create({
+  const companyDetails =
+    user.companyDetails &&
+    Array.isArray(user.companyDetails) &&
+    user.companyDetails.length > 0
+      ? {
+          companyName: user.companyDetails[0].companyName,
+          industryType: user.companyDetails[0].industryType,
+          websiteLink: websiteLink,
+          bio: user.companyDetails[0].bio,
+          logo: user.company_avatar?.url || "",
+        }
+      : {}; // or you can omit this field entirely if you want
+
+  const job = await Jobs.create({
     title,
     description,
     requirements,
@@ -67,13 +87,7 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
     locationType,
     employmentType,
     employmentTypeCategory,
-    companyDetails: {
-      companyName: user.companyDetails[0].companyName,
-      industryType: user.companyDetails[0].industryType,
-      websiteLink,
-      bio: user.companyDetails[0].bio,
-      logo: user.company_avatar.url,
-    },
+    companyDetails,
     employmentDuration,
     department,
     typeOfOrganization,
@@ -91,6 +105,7 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
     message: `You have Successfully Created ${employmentType} Opportunity`,
   });
 });
+
 
 //get all job--all user
 exports.getAllJob = catchAsyncErrors(async (req, res, next) => {
@@ -238,10 +253,11 @@ exports.updateJob = catchAsyncErrors(async (req, res, next) => {
 //get all employer job
 exports.getAllEmployeerJob = catchAsyncErrors(async (req, res, next) => {
   const resultPerPage = 15;
-  const jobsCount = await Jobs.countDocuments({ postedBy: req.user.id });
+  const userId = req?.user?.id || req?.admin?.id;
+  const jobsCount = await Jobs.countDocuments({ postedBy: userId });
 
   const apiFeature = new ApiFeatures(
-    Jobs.find({ postedBy: req.user.id }),
+    Jobs.find({ postedBy: userId }),
     req.query
   )
     .search()

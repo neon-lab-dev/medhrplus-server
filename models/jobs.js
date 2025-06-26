@@ -96,22 +96,16 @@ const jobSchema = new mongoose.Schema({
     required: true, //salary range per month
   }, // Optional
   companyDetails: {
-    companyName: {
-      type: String,
-    },
-    industryType: {
-      type: String,
-    },
-    // websiteLink: {
-    //   type: String,
-    // },
-    bio: {
-      type: String,
-    },
-    logo: {
-      type: String,
-    },
+  type: {
+    companyName: String,
+    industryType: String,
+    websiteLink: String,
+    bio: String,
+    logo: String,
   },
+  required: false,
+},
+
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Employeer",
