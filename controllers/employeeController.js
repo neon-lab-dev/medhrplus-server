@@ -422,44 +422,32 @@ exports.getUserDetails = catchAsyncErrors(async (req, res, next) => {
 
 //update user details
 exports.updateUserDetails = catchAsyncErrors(async (req, res, next) => {
-  const { full_name, email, mobilenumber, dob } = req.body;
-
-  const file = req.file;
-
   const user = await Emp.findById(req.user.id);
 
-  if (full_name) user.full_name = full_name;
-  if (email) user.email = email;
-  if (mobilenumber) user.mobilenumber = mobilenumber;
-  if (dob) user.dob = dob;
+  // Loop over all keys in req.body and update user object dynamically
+  Object.keys(req.body).forEach((key) => {
+    if (req.body[key] !== undefined) {
+      user[key] = req.body[key];
+    }
+  });
 
+  // Handle avatar update if file exists
   if (!user.avatar) {
     user.avatar = {};
   }
 
-  if (file) {
-    const fileUri = getDataUri(file);
-    // const mycloud = await cloudinary.v2.uploader.upload(fileUri.content, {
-    //   folder: "avatars",
-    //   width: 150,
-    //   crop: "scale",
-    // });
-
+  if (req.file) {
+    const fileUri = getDataUri(req.file);
     const mycloud = await uploadFile(
       fileUri.content,
       "fileUri.fileName",
       "avatars"
     );
-    //Destroy existing avatar if present
+
     if (user.avatar.public_id) {
-      //await cloudinary.v2.uploader.destroy(user.avatar.public_id);
       await deleteFile(user.avatar.public_id);
     }
 
-    // user.avatar = {
-    //   public_id: mycloud.public_id,
-    //   url: mycloud.secure_url,
-    // };
     user.avatar = {
       public_id: mycloud.fileId,
       url: mycloud.url,
@@ -470,9 +458,10 @@ exports.updateUserDetails = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: "Profile is updated successfully ",
+    message: "Profile is updated successfully",
   });
 });
+
 
 // update User password
 exports.updatePassword = catchAsyncErrors(async (req, res, next) => {

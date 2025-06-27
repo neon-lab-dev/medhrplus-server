@@ -33,7 +33,6 @@ const empSchema = new mongoose.Schema({
   designation: {
     type: String,
   },
-  // Newly added by Rahul (Start)
   gender: {
     type: String,
     enum: ["Male", "Female", "Other"],

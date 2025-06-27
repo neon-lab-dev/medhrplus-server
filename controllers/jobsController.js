@@ -177,7 +177,7 @@ exports.getSingleJob = catchAsyncErrors(async (req, res, next) => {
 exports.deletejob = catchAsyncErrors(async (req, res, next) => {
   const job = await Jobs.findOne({
     _id: req.params.id,
-    postedBy: req.user.id,
+    postedBy: req?.user?.id || req?.admin?.id,
   });
 
   if (!job) {
@@ -219,7 +219,7 @@ exports.updateJob = catchAsyncErrors(async (req, res, next) => {
   } = req.body;
   const jobs = await Jobs.findOne({
     _id: req.params.id,
-    postedBy: req.user.id,
+    postedBy: req?.user?.id || req?.admin?.id,
   });
 
   if (!jobs) {
@@ -262,9 +262,9 @@ exports.getAllEmployeerJob = catchAsyncErrors(async (req, res, next) => {
   )
     .search()
     .filter()
-    .pagination(resultPerPage); // ✅ Apply pagination BEFORE executing the query
+    .pagination(resultPerPage);
 
-  const jobs = await apiFeature.query; // ✅ Query executed only once
+  const jobs = await apiFeature.query;
 
   res.status(200).json({
     success: true,
@@ -435,7 +435,7 @@ exports.getSingleEmployee = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.manageAppliedJobs = catchAsyncErrors(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req?.user?.id || req?.admin?.id;
   const { jobId, applicantId, status } = req.body;
   const job = await Jobs.findById(jobId);
   if (!job.postedBy.toString() === userId) {
@@ -458,7 +458,7 @@ exports.manageAppliedJobs = catchAsyncErrors(async (req, res, next) => {
 
 exports.jobIsViewed = catchAsyncErrors(async (req, res, next) => {
   const { jobId, applicantId } = req.body;
-  const userId = req.user.id;
+  const userId = req?.user?.id || req?.admin?.id;
   const job = await Jobs.findById(jobId);
   if (!job.postedBy.toString() === userId) {
     return next(new ErrorHandler("You have not created this job!", 404));
