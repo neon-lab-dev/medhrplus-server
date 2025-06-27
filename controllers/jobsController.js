@@ -32,8 +32,6 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
   const userId = req?.user?.id || req?.admin?.id;
   const user = req.user || req.admin;
 
-  console.log(user);
-
   if (
     !title ||
     !description ||
@@ -76,9 +74,9 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
           bio: user.companyDetails[0].bio,
           logo: user.company_avatar?.url || "",
         }
-      : {}; // or you can omit this field entirely if you want
+      : { email: user.email };
 
-  const job = await Jobs.create({
+  await Jobs.create({
     title,
     description,
     requirements,
@@ -92,7 +90,12 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
     department,
     typeOfOrganization,
     salary,
-    postedBy: userId,
+    postedBy: {
+      _id: user._id,
+      full_name: user.full_name,
+      email: user.email,
+      // role: user.role,
+    },
     applicationDeadline,
     extraBenefits,
     experience,
@@ -105,7 +108,6 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
     message: `You have Successfully Created ${employmentType} Opportunity`,
   });
 });
-
 
 //get all job--all user
 exports.getAllJob = catchAsyncErrors(async (req, res, next) => {
@@ -256,10 +258,7 @@ exports.getAllEmployeerJob = catchAsyncErrors(async (req, res, next) => {
   const userId = req?.user?.id || req?.admin?.id;
   const jobsCount = await Jobs.countDocuments({ postedBy: userId });
 
-  const apiFeature = new ApiFeatures(
-    Jobs.find({ postedBy: userId }),
-    req.query
-  )
+  const apiFeature = new ApiFeatures(Jobs.find({ postedBy: userId }), req.query)
     .search()
     .filter()
     .pagination(resultPerPage);
@@ -277,12 +276,10 @@ exports.getAllEmployeerJob = catchAsyncErrors(async (req, res, next) => {
 
 //Employee Apply for JOB
 exports.ApplyJob = catchAsyncErrors(async (req, res, next) => {
-  const jobs = await Jobs.findById(req.params.id).populate(
-    "postedBy",
-    "name email"
-  );
+  const jobs = await Jobs.findById(req.params.id);
 
-  const employer = jobs.postedBy.email;
+  const postedBy = jobs.postedBy.email;
+  console.log(postedBy);
 
   const userId = req.user.id;
   const user = req.user;
@@ -345,7 +342,7 @@ Best regards,
 MedHr Plus 🏅
     `;
 
-  await sendEmail(employer, "New Application Received", emailMessage2);
+  await sendEmail(postedBy, "New Application Received", emailMessage2);
 
   res.status(200).json({
     success: true,
