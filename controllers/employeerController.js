@@ -175,6 +175,43 @@ MedHR Plus Team
   });
 });
 
+// send contact mail to employees
+exports.sendContactEmail = catchAsyncErrors(async (req, res, next) => {
+  const { userId } = req.params;
+  const { companyName } = req.body;
+
+  const user = await employee.findById(userId);
+
+  if (!user) {
+    return next(new ErrorHandler("Candidate not found", 404));
+  }
+
+  const emailMessage = `Dear ${user?.full_name},
+
+📢 A potential employer from ${companyName} is interested in your profile!
+
+They may reach out to you soon regarding a job opportunity you applied for through MedHR Plus.
+
+To take the next step, please check your MedHR Plus inbox or wait for further communication from the employer.
+
+Stay active, and best of luck in your career journey!
+
+Best regards,  
+MedHR Plus Team`;
+
+  await sendEmail(
+    user?.email,
+    "📢 An Employer Wants to Contact You",
+    emailMessage
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Contact email sent successfully to the candidate.",
+  });
+});
+
+
 //login user
 exports.loginEmployeer = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
