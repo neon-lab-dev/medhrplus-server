@@ -86,7 +86,7 @@ const empSchema = new mongoose.Schema({
       institutionName: { type: String },
       city: { type: String },
       courseName: { type: String },
-      grade: { type: String },
+      grade: { type: String, required: false },
       startDate: { type: Date },
       endDate: { type: Date },
       // fieldOfStudy: { type: String },
