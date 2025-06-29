@@ -256,9 +256,9 @@ exports.updateJob = catchAsyncErrors(async (req, res, next) => {
 exports.getAllEmployeerJob = catchAsyncErrors(async (req, res, next) => {
   const resultPerPage = 15;
   const userId = req?.user?.id || req?.admin?.id;
-  const jobsCount = await Jobs.countDocuments({ postedBy: userId });
+  const jobsCount = await Jobs.countDocuments({ "postedBy._id": userId });
 
-  const apiFeature = new ApiFeatures(Jobs.find({ postedBy: userId }), req.query)
+  const apiFeature = new ApiFeatures(Jobs.find({ "postedBy._id": userId }), req.query)
     .search()
     .filter()
     .pagination(resultPerPage);
