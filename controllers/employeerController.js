@@ -211,7 +211,6 @@ MedHR Plus Team`;
   });
 });
 
-
 //login user
 exports.loginEmployeer = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
@@ -245,12 +244,11 @@ exports.loginEmployeer = catchAsyncErrors(async (req, res, next) => {
       email: user.email,
       phoneNo: user.phoneNo,
       verified: user.verified,
-      role : user.role,
+      role: user.role,
     },
     accessToken: token,
   });
 });
-
 
 // Logout User
 exports.logout = catchAsyncErrors(async (req, res, next) => {
@@ -549,7 +547,11 @@ exports.findCandidates = catchAsyncErrors(async (req, res, next) => {
     };
   }
 
-  if (experience) query.experience = { $gte: parseInt(experience) };
+  if (experience) {
+    query.interestedDepartments = {
+      $in: [new RegExp(experience, "i")],
+    };
+  }
 
   // Filter by skills (Array)
   if (skills) {
@@ -578,10 +580,12 @@ exports.findCandidates = catchAsyncErrors(async (req, res, next) => {
     const courseNameArray = Array.isArray(courseName)
       ? courseName
       : courseName.split(",");
-  
+
     query.education = {
       $elemMatch: {
-        courseName: { $in: courseNameArray.map(name => new RegExp(name, "i")) }
+        courseName: {
+          $in: courseNameArray.map((name) => new RegExp(name, "i")),
+        },
       },
     };
   }
@@ -591,22 +595,22 @@ exports.findCandidates = catchAsyncErrors(async (req, res, next) => {
     const designationTypeArray = Array.isArray(designationType)
       ? designationType
       : designationType.split(",");
-  
+
     if (query.education && query.education.$elemMatch) {
       query.education.$elemMatch.designationType = {
-        $in: designationTypeArray.map(type => new RegExp(type, "i")),
+        $in: designationTypeArray.map((type) => new RegExp(type, "i")),
       };
     } else {
       query.education = {
         $elemMatch: {
           designationType: {
-            $in: designationTypeArray.map(type => new RegExp(type, "i")),
+            $in: designationTypeArray.map((type) => new RegExp(type, "i")),
           },
         },
       };
     }
   }
-  
+
   // Search by keyword in employee name
   if (keyword) query.full_name = { $regex: keyword, $options: "i" };
 

@@ -19,14 +19,10 @@ app.use(
     origin: [
       "http://localhost:3000",
       "https://medhrplus.vercel.app",
-      "https://career-hub-frontend.vercel.app",
-      "http://localhost:5173",
-      "https://career-hub-pi.vercel.app",
       "https://mefhr.vercel.app",
       "https://medhr.netlify.app",
       "https://www.medhrplus.com",
       "https://medhrplus.com",
-      "https://medhrplus.netlify.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "DELETE", "PUT"],
@@ -54,7 +50,7 @@ app.use("/api/v1", events);
 
 module.exports = app;
 
-app.get("/", (req, res) => res.send(`<h1>Welcome to Carrer Hub</h1>`));
+app.get("/", (req, res) => res.send(`<h1>Welcome to MedHR Plus</h1>`));
 
 app.get("/api/v1/getkey", (req, res) =>
   res.status(200).json({ key: process.env.RAZORPAY_API_KEY })
