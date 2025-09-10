@@ -89,11 +89,11 @@ const jobSchema = new mongoose.Schema({
 
   employmentDuration: {
     type: Number,
-    required: true,
-  }, // Duration in months, optional
+    required: false,
+  },
   salary: {
     type: Number,
-    required: true, //salary range per month
+    required: false,
   }, // Optional
   companyDetails: {
     type: {
@@ -127,7 +127,7 @@ const jobSchema = new mongoose.Schema({
   },
   applicationDeadline: {
     type: Date,
-    required: true,
+    required: false,
   },
   status: {
     type: String,
@@ -136,14 +136,13 @@ const jobSchema = new mongoose.Schema({
   },
   extraBenefits: {
     type: String,
-    required: true,
+    required: false,
+    default: "",
   },
   experience: {
     type: String,
-    required: [
-      true,
-      "Please Enter your experience which are you looking for !",
-    ],
+    required: false,
+    default: "",
   },
   applicants: [ApplicantSchema], // Array of applicant IDs
 });
