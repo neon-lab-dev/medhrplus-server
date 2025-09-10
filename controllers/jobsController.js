@@ -41,13 +41,8 @@ exports.createJob = catchAsyncErrors(async (req, res, next) => {
     !locationType ||
     !employmentType ||
     !employmentTypeCategory ||
-    !employmentDuration ||
     !department ||
     !typeOfOrganization ||
-    !salary ||
-    !applicationDeadline ||
-    !extraBenefits ||
-    !experience ||
     !country ||
     !city
   ) {
