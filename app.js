@@ -38,6 +38,7 @@ const skills = require("./routes/skillsRoute.js");
 const videos = require("./routes/videoRoute.js");
 const courses = require("./routes/coursesRoute.js");
 const events = require("./routes/eventRoute.js");
+const payment = require("./routes/paymentRoute.js");
 
 app.use("/api/v1", user);
 app.use("/api/v1", employeer);
@@ -47,6 +48,7 @@ app.use("/api/v1", skills);
 app.use("/api/v1", videos);
 app.use("/api/v1", courses);
 app.use("/api/v1", events);
+app.use("/api/v1/payment", payment);
 
 module.exports = app;
 
