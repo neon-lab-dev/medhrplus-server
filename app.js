@@ -5,6 +5,11 @@ const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const NodeCache = require("node-cache");
+// const {Cashfree} = require("cashfree-pg");
+
+// Cashfree.XClientId = process.env.CASHFREE_X_CLIENT_ID;
+// Cashfree.XClientSecret = process.env.CASHFREE_X_CLIENT_SECRET;
+// Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 
 //config
 dotenv.config({ path: "./config/config.env" });

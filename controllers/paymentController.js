@@ -2,86 +2,100 @@ const axios = require("axios");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const payment = require("../models/payment");
 
-// Create Payment & get Cashfree order token
-exports.createPayment = catchAsyncError(async (req, res, next) => {
-  const { amount, paidBy } = req.body;
-
-  if (!amount || !paidBy) {
-    return next(new ErrorHandler("Amount and paidBy are required", 400));
-  }
-
-  // 1️⃣ Create Cashfree order token
+exports.createPayment = async (req, res, next) => {
   try {
-    const response = await axios.post(
-      "https://sandbox.cashfree.com/pg/orders", // change to production for live
-      {
-        order_amount: amount,
-        order_currency: "INR",
-        order_note: "Payment for Employee registration",
-        customer_details: {
-          customer_id: paidBy,
-        },
-        order_meta: {
-          return_url: "http://localhost:3000/payment-success",
-        },
+    const { amount, paidBy, customerPhone, customerEmail } = req.body;
+    if (!amount || !paidBy)
+      return res.status(400).json({ error: "amount & paidBy required" });
+
+    const payload = {
+      order_amount: amount,
+      order_currency: "INR",
+      order_note: "Payment for Employee registration",
+      customer_details: {
+        customer_id: paidBy,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
       },
+      order_meta: {
+        return_url: "http://localhost:3000/payment-sucess", // production return_url
+      },
+    };
+
+    const resp = await axios.post(
+      `${process.env.CF_BASE_URL}/pg/orders`,
+      payload,
       {
         headers: {
           "x-client-id": process.env.CASHFREE_APP_ID,
           "x-client-secret": process.env.CASHFREE_SECRET_KEY,
           "Content-Type": "application/json",
+          "x-api-version": "2022-09-01", // ✅ required for v3
         },
       }
     );
 
-    const { order_id, payment_link, status } = response.data;
+    // resp.data contains order_id and payment_session_id
+    const { order_id, payment_session_id } = resp.data;
 
-    // 2️⃣ Save initial payment record in DB
-    const paymentData = await payment.create({
+    // Save to your DB: order_id, paymentSessionId, amount, status: Pending, paidBy, etc.
+    await payment.create({
       orderId: order_id,
+      paymentSessionId: payment_session_id,
       amount,
       paymentStatus: "Pending",
       paidBy,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      paymentId: paymentData._id,
-      orderId: order_id,
-      paymentLink: payment_link,
-      message: "Payment initiated, complete the payment using Cashfree",
+      data: resp.data, // now frontend can do resData.data.payment_session_id
     });
-  } catch (error) {
-    console.error(error.response?.data || error.message);
-    return next(new ErrorHandler("Failed to create payment", 500));
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    return res.status(500).json({ error: "Failed to create payment" });
   }
-});
+};
 
-exports.verifyPayment = catchAsyncError(async (req, res, next) => {
-  const { orderId, transactionId } = req.body;
+// safer server-side verify
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId) return res.status(400).send({ error: "orderId required" });
 
-  if (!orderId || !transactionId) {
-    return next(new ErrorHandler("orderId and transactionId are required", 400));
+    console.log("Verifying orderId:", orderId);
+
+    const resp = await axios.get(
+      `${process.env.CF_BASE_URL}/pg/orders/${orderId}`,
+      {
+        headers: {
+          "x-client-id": process.env.CASHFREE_APP_ID,
+          "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+          "x-api-version": "2022-09-01",
+        },
+      }
+    );
+
+    const order = resp.data;
+    console.log("Cashfree order response:", order);
+
+    if (order.order_status === "PAID" || order.order_status === "Paid") {
+      return res.json({ success: true, message: "Verified", order });
+    }
+
+    return res
+      .status(400)
+      .json({ success: false, message: "Payment not completed", order });
+  } catch (err) {
+    console.error(
+      "Error verifying payment:",
+      err.response?.data || err.message
+    );
+    res
+      .status(err.response?.status || 500)
+      .json({ error: err.response?.data || err.message });
   }
-
-  // Find payment in DB
-  const payment = await Payment.findOne({ orderId });
-  if (!payment) {
-    return next(new ErrorHandler("Payment not found", 404));
-  }
-
-  // Update status to Paid
-  payment.paymentStatus = "Paid";
-  payment.transactionId = transactionId;
-  payment.paymentDate = new Date();
-  await payment.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Payment verified successfully",
-    payment,
-  });
-});
+};
 
 // Get all payments
 exports.getAllPayments = catchAsyncError(async (req, res, next) => {
