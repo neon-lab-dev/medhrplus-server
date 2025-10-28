@@ -253,7 +253,10 @@ exports.getAllEmployeerJob = catchAsyncErrors(async (req, res, next) => {
   const userId = req?.user?.id || req?.admin?.id;
   const jobsCount = await Jobs.countDocuments({ "postedBy._id": userId });
 
-  const apiFeature = new ApiFeatures(Jobs.find({ "postedBy._id": userId }), req.query)
+  const apiFeature = new ApiFeatures(
+    Jobs.find({ "postedBy._id": userId }),
+    req.query
+  )
     .search()
     .filter()
     .pagination(resultPerPage);
@@ -274,10 +277,16 @@ exports.ApplyJob = catchAsyncErrors(async (req, res, next) => {
   const jobs = await Jobs.findById(req.params.id);
 
   const postedBy = jobs.postedBy.email;
-  console.log(postedBy);
 
   const userId = req.user.id;
   const user = req.user;
+  const userData = await Emp.findById(userId);
+
+  if (!userData?.isPaid) {
+    return next(
+      new ErrorHandler("Please complete your payment to apply on job.", 400)
+    );
+  }
 
   if (!jobs) {
     return next(new ErrorHandler("Jobs Doesn't exist with this ID", 404));

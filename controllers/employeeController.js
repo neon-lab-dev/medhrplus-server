@@ -154,6 +154,12 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
 
+  if (!user?.isPaid) {
+    return next(
+      new ErrorHandler("Please complete your payment to continue.", 400)
+    );
+  }
+
   // Compare passwords
   const isPasswordMatched = await user.comparePassword(password);
 
@@ -161,7 +167,6 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
 
-  
   // Generate token manually
   const token = user.getJWTToken();
 
@@ -211,6 +216,12 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
+  }
+
+  if (!user?.isPaid) {
+    return next(
+      new ErrorHandler("Please complete your payment to continue.", 400)
+    );
   }
 
   // Get ResetPassword Token
@@ -277,6 +288,11 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
         "Reset Password Token is invalid or has been expired",
         400
       )
+    );
+  }
+  if (!user?.isPaid) {
+    return next(
+      new ErrorHandler("Please complete your payment to continue.", 400)
     );
   }
 
@@ -383,9 +399,12 @@ exports.EnterUserDetails = catchAsyncErrors(async (req, res, next) => {
   if (guardian) updateFields.guardian = guardian;
   if (preferredLanguages) updateFields.preferredLanguages = preferredLanguages;
   if (areasOfInterests) updateFields.areasOfInterests = areasOfInterests;
-  if (currentlyLookingFor)updateFields.currentlyLookingFor = currentlyLookingFor;
-  if (interestedCountries) updateFields.interestedCountries = interestedCountries;
-  if (interestedDepartments) updateFields.interestedDepartments = interestedDepartments;
+  if (currentlyLookingFor)
+    updateFields.currentlyLookingFor = currentlyLookingFor;
+  if (interestedCountries)
+    updateFields.interestedCountries = interestedCountries;
+  if (interestedDepartments)
+    updateFields.interestedDepartments = interestedDepartments;
   if (address) updateFields.address = address;
   if (education) updateFields.education = education;
   if (experience) updateFields.experience = experience;
@@ -461,7 +480,6 @@ exports.updateUserDetails = catchAsyncErrors(async (req, res, next) => {
     message: "Profile is updated successfully",
   });
 });
-
 
 // update User password
 exports.updatePassword = catchAsyncErrors(async (req, res, next) => {

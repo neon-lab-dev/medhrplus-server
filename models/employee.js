@@ -74,12 +74,12 @@ const empSchema = new mongoose.Schema({
     },
   ],
   address: {
-      street: { type: String },
-      city: { type: String },
-      postalCode: { type: String },
-      state: { type: String },
-      country: { type: String },
-    },
+    street: { type: String },
+    city: { type: String },
+    postalCode: { type: String },
+    state: { type: String },
+    country: { type: String },
+  },
   education: [
     {
       designationType: { type: String },
@@ -161,7 +161,7 @@ const empSchema = new mongoose.Schema({
     pinterest: { type: String },
     telegram: { type: String },
     discord: { type: String },
-  },  
+  },
   interests: [
     {
       type: String,
@@ -170,6 +170,11 @@ const empSchema = new mongoose.Schema({
 
   verified: {
     type: Boolean,
+    default: false,
+  },
+  isPaid: {
+    type: Boolean,
+    required: true,
     default: false,
   },
   otp: Number,

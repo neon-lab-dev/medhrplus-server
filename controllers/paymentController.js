@@ -1,6 +1,7 @@
 const axios = require("axios");
-const catchAsyncError = require("../middleware/catchAsyncError");
-const payment = require("../models/payment");
+const catchAsyncError = require("../middleware/catchAsyncError.js");
+const payment = require("../models/payment.js");
+const employee = require("../models/employee.js");
 
 exports.createPayment = async (req, res, next) => {
   try {
@@ -18,7 +19,7 @@ exports.createPayment = async (req, res, next) => {
         customer_email: customerEmail,
       },
       order_meta: {
-        return_url: "http://localhost:3000/payment-sucess", // production return_url
+        return_url: "http://localhost:3000/payment/sucess?orderId={null}", // production return_url
       },
     };
 
@@ -30,7 +31,7 @@ exports.createPayment = async (req, res, next) => {
           "x-client-id": process.env.CASHFREE_APP_ID,
           "x-client-secret": process.env.CASHFREE_SECRET_KEY,
           "Content-Type": "application/json",
-          "x-api-version": "2022-09-01", // ✅ required for v3
+          "x-api-version": "2022-09-01",
         },
       }
     );
@@ -77,9 +78,9 @@ exports.verifyPayment = async (req, res) => {
     );
 
     const order = resp.data;
-    console.log("Cashfree order response:", order);
 
     if (order.order_status === "PAID" || order.order_status === "Paid") {
+      employee.findByIdAndUpdate(order.customer_id, { isPaid: true });
       return res.json({ success: true, message: "Verified", order });
     }
 
