@@ -79,8 +79,8 @@ exports.verifyPayment = async (req, res) => {
 
     const order = resp.data;
 
-    if (order.order_status === "PAID" || order.order_status === "Paid") {
-      employee.findByIdAndUpdate(order.customer_id, { isPaid: true });
+    if (order.order_status === "PAID") {
+     await employee.findByIdAndUpdate({_id:order?.customer_details?.customer_id}, { isPaid: true });
       return res.json({ success: true, message: "Verified", order });
     }
 

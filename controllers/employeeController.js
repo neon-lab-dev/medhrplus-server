@@ -154,12 +154,6 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
 
-  if (!user?.isPaid) {
-    return next(
-      new ErrorHandler("Please complete your payment to continue.", 400)
-    );
-  }
-
   // Compare passwords
   const isPasswordMatched = await user.comparePassword(password);
 
@@ -216,12 +210,6 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
-  }
-
-  if (!user?.isPaid) {
-    return next(
-      new ErrorHandler("Please complete your payment to continue.", 400)
-    );
   }
 
   // Get ResetPassword Token
