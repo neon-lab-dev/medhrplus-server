@@ -64,8 +64,6 @@ exports.verifyPayment = async (req, res) => {
     const { orderId } = req.body;
     if (!orderId) return res.status(400).send({ error: "orderId required" });
 
-    console.log("Verifying orderId:", orderId);
-
     const resp = await axios.get(
       `${process.env.CF_BASE_URL}/pg/orders/${orderId}`,
       {
@@ -80,7 +78,10 @@ exports.verifyPayment = async (req, res) => {
     const order = resp.data;
 
     if (order.order_status === "PAID") {
-     await employee.findByIdAndUpdate({_id:order?.customer_details?.customer_id}, { isPaid: true });
+      await employee.findByIdAndUpdate(
+        { _id: order?.customer_details?.customer_id },
+        { isPaid: true, paymentStatus: "Paid" }
+      );
       return res.json({ success: true, message: "Verified", order });
     }
 
@@ -100,7 +101,9 @@ exports.verifyPayment = async (req, res) => {
 
 // Get all payments
 exports.getAllPayments = catchAsyncError(async (req, res, next) => {
-  const payments = await Payment.find().populate("paidBy", "full_name email");
+  const payments = await payment
+    .find()
+    .populate("paidBy", "full_name email mobilenumber");
   res.status(200).json({
     success: true,
     count: payments.length,
@@ -110,10 +113,9 @@ exports.getAllPayments = catchAsyncError(async (req, res, next) => {
 
 // Get single payment by ID
 exports.getSinglePayment = catchAsyncError(async (req, res, next) => {
-  const payment = await Payment.findById(req.params.id).populate(
-    "paidBy",
-    "full_name email"
-  );
+  const payment = await payment
+    .findById(req.params.id)
+    .populate("paidBy", "full_name email");
 
   if (!payment) {
     return next(new ErrorHandler("Payment not found", 404));
@@ -125,11 +127,11 @@ exports.getSinglePayment = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// Update payment status (Webhook / Frontend callback)
+// Update payment status
 exports.updatePaymentStatus = catchAsyncError(async (req, res, next) => {
   const { orderId, transactionId, paymentStatus } = req.body;
 
-  const payment = await Payment.findOne({ orderId });
+  const payment = await payment.findOne({ orderId });
   if (!payment) return next(new ErrorHandler("Payment not found", 404));
 
   payment.transactionId = transactionId;
