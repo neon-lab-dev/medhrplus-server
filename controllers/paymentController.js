@@ -3,11 +3,17 @@ const catchAsyncError = require("../middleware/catchAsyncError.js");
 const payment = require("../models/payment.js");
 const employee = require("../models/employee.js");
 
-exports.createPayment = async (req, res, next) => {
+exports.createPayment = async (req, res) => {
+  console.log(req.user, "user");
   try {
     const { amount, paidBy, customerPhone, customerEmail } = req.body;
-    if (!amount || !paidBy)
-      return res.status(400).json({ error: "amount & paidBy required" });
+
+    if (!amount || !paidBy) {
+      return res.status(400).json({
+        success: false,
+        message: "amount & paidBy required",
+      });
+    }
 
     const payload = {
       order_amount: amount,
@@ -19,7 +25,8 @@ exports.createPayment = async (req, res, next) => {
         customer_email: customerEmail,
       },
       order_meta: {
-        return_url: "http://localhost:3000/payment/sucess?orderId={null}", // production return_url
+        return_url:
+          "https://medhrplus.vercel.app/payment/success?orderId={order_id}",
       },
     };
 
@@ -30,16 +37,19 @@ exports.createPayment = async (req, res, next) => {
         headers: {
           "x-client-id": process.env.CASHFREE_APP_ID,
           "x-client-secret": process.env.CASHFREE_SECRET_KEY,
-          "Content-Type": "application/json",
           "x-api-version": "2022-09-01",
+          "Content-Type": "application/json",
         },
       }
     );
 
-    // resp.data contains order_id and payment_session_id
     const { order_id, payment_session_id } = resp.data;
 
-    // Save to your DB: order_id, paymentSessionId, amount, status: Pending, paidBy, etc.
+    // 🔍 Important debug (temporary)
+    console.log("Order ID:", order_id);
+    console.log("Session ID:", resp.data);
+
+    // Save clean data only
     await payment.create({
       orderId: order_id,
       paymentSessionId: payment_session_id,
@@ -48,15 +58,23 @@ exports.createPayment = async (req, res, next) => {
       paidBy,
     });
 
+    // ✅ Return ONLY required fields
     return res.status(201).json({
       success: true,
-      data: resp.data, // now frontend can do resData.data.payment_session_id
+      data: {
+        order_id,
+        payment_session_id,
+      },
     });
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    return res.status(500).json({ error: "Failed to create payment" });
+    console.error("Cashfree error:", err.response?.data || err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create payment",
+    });
   }
 };
+
 
 // safer server-side verify
 exports.verifyPayment = async (req, res) => {

@@ -1,12 +1,11 @@
 const express = require("express");
-const { isAuthenticatedAdmin } = require("../middleware/auth.js");
+const { isAuthenticatedAdmin, isAuthenticatedUser } = require("../middleware/auth.js");
 const { createPayment, verifyPayment, getAllPayments, getSinglePayment, updatePaymentStatus } = require("../controllers/paymentController.js");
 const router = express.Router();
 
-router.post("/create", createPayment);
-router.post("/verify", verifyPayment);
-router.get("/", isAuthenticatedAdmin, getAllPayments);
-router.get("/:id", isAuthenticatedAdmin, getSinglePayment);
-router.put("/update-status", isAuthenticatedAdmin, updatePaymentStatus);
-
+router.route("/create").post(isAuthenticatedUser, createPayment);
+router.route("/verify").post(isAuthenticatedUser, verifyPayment);
+router.route("/").get(isAuthenticatedAdmin, getAllPayments);
+router.route("/:id").get(isAuthenticatedAdmin, getSinglePayment);
+router.route("/update-status").put(isAuthenticatedAdmin, updatePaymentStatus);
 module.exports = router;
