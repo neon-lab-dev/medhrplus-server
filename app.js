@@ -23,9 +23,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://medhrplus.vercel.app",
-      "https://mefhr.vercel.app",
-      "https://medhr.netlify.app",
+      "https://medhrplus.netlify.app",
       "https://www.medhrplus.com",
       "https://medhrplus.com",
     ],
