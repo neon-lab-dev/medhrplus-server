@@ -40,7 +40,7 @@ exports.createPayment = async (req, res) => {
           "x-api-version": "2022-09-01",
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     const { order_id, payment_session_id } = resp.data;
@@ -75,7 +75,6 @@ exports.createPayment = async (req, res) => {
   }
 };
 
-
 // safer server-side verify
 exports.verifyPayment = async (req, res) => {
   try {
@@ -90,7 +89,7 @@ exports.verifyPayment = async (req, res) => {
           "x-client-secret": process.env.CASHFREE_SECRET_KEY,
           "x-api-version": "2022-09-01",
         },
-      }
+      },
     );
 
     const order = resp.data;
@@ -98,7 +97,7 @@ exports.verifyPayment = async (req, res) => {
     if (order.order_status === "PAID") {
       await employee.findByIdAndUpdate(
         { _id: order?.customer_details?.customer_id },
-        { isPaid: true, paymentStatus: "Paid" }
+        { isPaid: true, paymentStatus: "Paid" },
       );
       return res.json({ success: true, message: "Verified", order });
     }
@@ -109,7 +108,7 @@ exports.verifyPayment = async (req, res) => {
   } catch (err) {
     console.error(
       "Error verifying payment:",
-      err.response?.data || err.message
+      err.response?.data || err.message,
     );
     res
       .status(err.response?.status || 500)
@@ -121,7 +120,9 @@ exports.verifyPayment = async (req, res) => {
 exports.getAllPayments = catchAsyncError(async (req, res, next) => {
   const payments = await payment
     .find()
+    .sort({ createdAt: -1 })
     .populate("paidBy", "full_name email mobilenumber");
+
   res.status(200).json({
     success: true,
     count: payments.length,

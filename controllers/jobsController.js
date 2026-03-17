@@ -109,16 +109,10 @@ exports.getAllJob = catchAsyncErrors(async (req, res, next) => {
   const resultPerPage = 15;
   const jobsCount = await Jobs.countDocuments();
 
+  // 🔥 Keep sorting here (before filters & pagination chain continues)
   let query = Jobs.find().sort({ postedAt: -1 });
 
-  // 👇 Custom filters handled manually (without modifying .filter())
   const { employmentTypeCategory, locationType, location } = req.query;
-
-  // if (employmentType) {
-  //   query = query.find({
-  //     employmentType: { $regex: employmentType, $options: "i" },
-  //   });
-  // }
 
   if (employmentTypeCategory) {
     query = query.find({
@@ -139,7 +133,6 @@ exports.getAllJob = catchAsyncErrors(async (req, res, next) => {
     });
   }
 
-  // Apply reusable ApiFeatures after custom filters
   const apiFeature = new ApiFeatures(query, req.query)
     .search()
     .filter()
@@ -251,15 +244,20 @@ exports.updateJob = catchAsyncErrors(async (req, res, next) => {
 exports.getAllEmployeerJob = catchAsyncErrors(async (req, res, next) => {
   const resultPerPage = 15;
   const userId = req?.user?.id || req?.admin?.id;
-  const jobsCount = await Jobs.countDocuments({ "postedBy._id": userId });
+
+  const jobsCount = await Jobs.countDocuments({ postedBy: userId });
 
   const apiFeature = new ApiFeatures(
-    Jobs.find({ "postedBy._id": userId }),
+    Jobs.find({ postedBy: userId }),
     req.query
   )
     .search()
-    .filter()
-    .pagination(resultPerPage);
+    .filter();
+
+  // 🔥 sort BEFORE pagination
+  apiFeature.query = apiFeature.query.sort({ postedAt: -1 });
+
+  apiFeature.pagination(resultPerPage);
 
   const jobs = await apiFeature.query;
 
@@ -372,6 +370,10 @@ exports.getAllEmployeeJob = catchAsyncErrors(async (req, res, next) => {
   const apiFeature = new ApiFeatures(Jobs.find(filterQuery), req.query)
     .search()
     .filter();
+
+  // 🔥 Add sorting here
+  apiFeature.query = apiFeature.query.sort({ postedAt: -1 });
+
   // ✅ Get total after filters (before pagination)
   const jobsBeforePagination = await apiFeature.query.clone();
   const filteredJobsCount = jobsBeforePagination.length;

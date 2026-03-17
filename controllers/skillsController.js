@@ -168,24 +168,14 @@ exports.getAllSkills = catchAsyncErrors(async (req, res) => {
 
   const filter = {};
 
-  // Filter by programmeType
-  if (programmeType) {
-    filter.programmeType = programmeType;
-  }
-
-  // Filter by department
-  if (department) {
-    filter.department = department;
-  }
-
-  // Filter by pricingType
-  if (pricingType) {
-    filter.pricingType = pricingType;
-  }
-
-  // Search by courseName
+  if (programmeType) filter.programmeType = programmeType;
+  if (department) filter.department = department;
+  if (pricingType) filter.pricingType = pricingType;
   if (keyword) filter.skillProgrammeName = { $regex: keyword, $options: "i" };
-  const skills = await Skill.find(filter).populate("postedBy");
+
+  const skills = await Skill.find(filter)
+    .sort({ createdAt: -1 }) // 🔥 latest first
+    .populate("postedBy");
 
   res.status(200).json({
     success: true,
@@ -210,6 +200,7 @@ exports.getSkillDetails = catchAsyncErrors(async (req, res, next) => {
 exports.getAllEmployerSkillProgrammes = catchAsyncErrors(
   async (req, res, next) => {
     const resultPerPage = 15;
+
     const skillProgrammesCount = await Skill.countDocuments({
       postedBy: req.user.id,
     });
@@ -219,8 +210,13 @@ exports.getAllEmployerSkillProgrammes = catchAsyncErrors(
       req.query
     )
       .search()
-      .filter()
-      .pagination(resultPerPage);
+      .filter();
+
+    // 🔥 Sort latest first BEFORE pagination
+    apiFeature.query = apiFeature.query.sort({ createdAt: -1 });
+
+    apiFeature.pagination(resultPerPage);
+
     const skills = await apiFeature.query;
 
     res.status(200).json({
@@ -228,7 +224,7 @@ exports.getAllEmployerSkillProgrammes = catchAsyncErrors(
       skillProgrammesCount,
       skills,
       resultPerPage,
-      filteredJobsCount: skills?.length,
+      filteredSkillsCount: skills?.length,
     });
   }
 );

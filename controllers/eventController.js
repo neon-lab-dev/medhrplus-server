@@ -7,7 +7,17 @@ const ApiFeatures = require("../utils/apifeatures.js");
 
 // Get all events
 exports.createEvent = catchAsyncErrors(async (req, res, next) => {
-  const { date, time, eventName, eventUrl, company, skillCovered, organizerName, organizationType, department } = req.body;
+  const {
+    date,
+    time,
+    eventName,
+    eventUrl,
+    company,
+    skillCovered,
+    organizerName,
+    organizationType,
+    department,
+  } = req.body;
 
   if (!date || !time || !eventName || !eventUrl || !company || !skillCovered) {
     return next(new ErrorHandler("Please Enter All Fields", 400));
@@ -23,7 +33,7 @@ exports.createEvent = catchAsyncErrors(async (req, res, next) => {
     const uploadedImage = await uploadFile(
       imageUri.content,
       imageUri.fileName,
-      "event-thumbnails"
+      "event-thumbnails",
     );
 
     const event = await Event.create({
@@ -31,9 +41,9 @@ exports.createEvent = catchAsyncErrors(async (req, res, next) => {
       time,
       eventName,
       eventUrl,
-      organizerName : organizerName || "",
-      organizationType : organizationType || "",
-      department : department || "",
+      organizerName: organizerName || "",
+      organizationType: organizationType || "",
+      department: department || "",
       company: JSON.parse(company),
       skillCovered: JSON.parse(skillCovered) || [],
       image: {
@@ -61,7 +71,10 @@ exports.createEvent = catchAsyncErrors(async (req, res, next) => {
 
 // Get all events for admin
 exports.getAllEvents = catchAsyncErrors(async (req, res, next) => {
-  const events = await Event.find().populate("postedBy", "full_name email");
+  const events = await Event.find()
+    .sort({ createdAt: -1 })
+    .populate("postedBy", "full_name email");
+
   res.status(200).json({
     success: true,
     data: events,
@@ -71,15 +84,22 @@ exports.getAllEvents = catchAsyncErrors(async (req, res, next) => {
 // Get all courses for employer
 exports.getAllEmployerEvents = catchAsyncErrors(async (req, res, next) => {
   const resultPerPage = 15;
-  const eventsCount = await Event.countDocuments({ postedBy: req.user.id });
+
+  const eventsCount = await Event.countDocuments({
+    postedBy: req.user.id,
+  });
 
   const apiFeature = new ApiFeatures(
     Event.find({ postedBy: req.user.id }),
-    req.query
+    req.query,
   )
     .search()
-    .filter()
-    .pagination(resultPerPage);
+    .filter();
+
+  apiFeature.query = apiFeature.query.sort({ createdAt: -1 });
+
+  apiFeature.pagination(resultPerPage);
+
   const events = await apiFeature.query;
 
   res.status(200).json({
@@ -97,7 +117,7 @@ exports.getEventById = catchAsyncErrors(async (req, res, next) => {
 
   const event = await Event.findById(id).populate(
     "postedBy",
-    "full_name email"
+    "full_name email",
   );
 
   if (!event) {
@@ -113,7 +133,17 @@ exports.getEventById = catchAsyncErrors(async (req, res, next) => {
 // Update event by id
 exports.updateEvent = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
-  let { eventName, eventUrl, date, time, company, skillCovered, organizerName, organizationType, department } = req.body;
+  let {
+    eventName,
+    eventUrl,
+    date,
+    time,
+    company,
+    skillCovered,
+    organizerName,
+    organizationType,
+    department,
+  } = req.body;
 
   const event = await Event.findById(id);
 
@@ -128,7 +158,7 @@ exports.updateEvent = catchAsyncErrors(async (req, res, next) => {
 
   if (!isAdmin && !isOwner) {
     return next(
-      new ErrorHandler("You are not authorized to update this event", 403)
+      new ErrorHandler("You are not authorized to update this event", 403),
     );
   }
 
@@ -180,7 +210,7 @@ exports.updateEvent = catchAsyncErrors(async (req, res, next) => {
     const image = await uploadFile(
       imageUri.content,
       imageUri.fileName,
-      "event-images"
+      "event-images",
     );
 
     event.image = {
@@ -194,7 +224,7 @@ exports.updateEvent = catchAsyncErrors(async (req, res, next) => {
 
   const populatedEvent = await Event.findById(event._id).populate(
     "image",
-    "name url createdAt"
+    "name url createdAt",
   );
 
   res.status(200).json({
@@ -220,7 +250,7 @@ exports.deleteEvent = catchAsyncErrors(async (req, res, next) => {
 
   if (!isAdmin && !isOwner) {
     return next(
-      new ErrorHandler("You are not authorized to update this event", 403)
+      new ErrorHandler("You are not authorized to update this event", 403),
     );
   }
 

@@ -34,7 +34,7 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
   if (password != confirm_password)
     return next(
-      new ErrorHandler("Password and Confirm Password Doesn't Match", 400)
+      new ErrorHandler("Password and Confirm Password Doesn't Match", 400),
     );
 
   let user = await Emp.findOne({ email });
@@ -240,7 +240,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     await sendEmail(
       user.email,
       "Password Reset Link for Carrer Hub Account",
-      message
+      message,
     );
 
     res.status(200).json({
@@ -274,13 +274,13 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
     return next(
       new ErrorHandler(
         "Reset Password Token is invalid or has been expired",
-        400
-      )
+        400,
+      ),
     );
   }
   if (!user?.isPaid) {
     return next(
-      new ErrorHandler("Please complete your payment to continue.", 400)
+      new ErrorHandler("Please complete your payment to continue.", 400),
     );
   }
 
@@ -448,7 +448,7 @@ exports.updateUserDetails = catchAsyncErrors(async (req, res, next) => {
     const mycloud = await uploadFile(
       fileUri.content,
       "fileUri.fileName",
-      "avatars"
+      "avatars",
     );
 
     if (user.avatar.public_id) {
@@ -512,7 +512,7 @@ exports.uploadUserResume = catchAsyncErrors(async (req, res, next) => {
     const mycloud = await uploadFile(
       fileUri.content,
       fileUri.fileName,
-      "resumes"
+      "resumes",
     );
 
     // Destroy existing avatar if present

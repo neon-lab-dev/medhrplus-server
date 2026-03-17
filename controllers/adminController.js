@@ -91,12 +91,23 @@ exports.adminProfile = catchAsyncErrors(async (req, res, next) => {
 
 exports.getAllEmployers = catchAsyncErrors(async (req, res, next) => {
   const resultsPerPage = 15;
+
   const employersCount = await Employeer.countDocuments();
+
   const apiFeatures = new Search(Employeer.find(), req.query)
-    .search()
-    .pagination(resultsPerPage);
+    .search();
+
+  // Sort latest first BEFORE pagination
+  apiFeatures.query = apiFeatures.query.sort({ createdAt: -1 });
+
+  apiFeatures.pagination(resultsPerPage);
+
   const employers = await apiFeatures.query;
-  const filteredEmployersCount = employers.length;
+
+  // Optional: get accurate filtered count
+  const filteredEmployersCount = await Employeer.countDocuments(
+    apiFeatures.query.getQuery()
+  );
 
   res.status(200).json({
     success: true,
@@ -132,17 +143,29 @@ exports.deleteEmployer = catchAsyncErrors(async (req, res, next) => {
 
 exports.getAllEmployees = catchAsyncErrors(async (req, res, next) => {
   const resultsPerPage = 15;
+
   const employeeCount = await Employee.countDocuments();
+
   const apiFeatures = new Search(Employee.find(), req.query)
-    .search()
-    .pagination(resultsPerPage);
+    .search();
+
+  // Sort latest first BEFORE pagination
+  apiFeatures.query = apiFeatures.query.sort({ createdAt: -1 });
+
+  apiFeatures.pagination(resultsPerPage);
+
   const employees = await apiFeatures.query;
-  const filteredEmployersCount = employees.length;
+
+  // ✅ Get accurate filtered count
+  const filteredEmployeesCount = await Employee.countDocuments(
+    apiFeatures.query.getQuery()
+  );
+
   res.status(200).json({
     success: true,
     employeeCount,
     employees,
-    filteredEmployersCount,
+    filteredEmployeesCount,
   });
 });
 

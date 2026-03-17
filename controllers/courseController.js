@@ -42,7 +42,7 @@ exports.createCourse = catchAsyncErrors(async (req, res, next) => {
   const thumbnail = await uploadFile(
     thumbnailUri.content,
     thumbnailUri.fileName,
-    "course-thumbnails"
+    "course-thumbnails",
   );
 
   // Create the course
@@ -80,25 +80,25 @@ exports.getAllCourses = catchAsyncErrors(async (req, res, next) => {
 
   const filter = {};
 
-  // Filter by courseType
   if (courseType) {
     filter.courseType = courseType;
   }
 
-  // Filter by department
   if (department) {
     filter.department = department;
   }
 
-  // Filter by pricingType
   if (pricingType) {
     filter.pricingType = pricingType;
   }
 
-  // Search by courseName
-  if (keyword) filter.courseName = { $regex: keyword, $options: "i" };
+  if (keyword) {
+    filter.courseName = { $regex: keyword, $options: "i" };
+  }
 
-  const courses = await Course.find(filter).populate("postedBy");
+  const courses = await Course.find(filter)
+    .sort({ createdAt: -1 })
+    .populate("postedBy");
 
   res.status(200).json({
     success: true,
@@ -145,7 +145,7 @@ exports.deleteCourse = catchAsyncErrors(async (req, res, next) => {
 
   if (!isAdmin && !isOwner) {
     return next(
-      new ErrorHandler("You are not authorized to delete this course", 403)
+      new ErrorHandler("You are not authorized to delete this course", 403),
     );
   }
 
@@ -209,7 +209,7 @@ exports.updateCourse = catchAsyncErrors(async (req, res, next) => {
 
   if (!isAdmin && !isOwner) {
     return next(
-      new ErrorHandler("You are not authorized to update this course", 403)
+      new ErrorHandler("You are not authorized to update this course", 403),
     );
   }
 
@@ -243,7 +243,7 @@ exports.updateCourse = catchAsyncErrors(async (req, res, next) => {
     const thumbnail = await uploadFile(
       thumbnailUri.content,
       thumbnailUri.fileName,
-      "course-thumbnails"
+      "course-thumbnails",
     );
 
     course.thumbnail = {
@@ -264,15 +264,24 @@ exports.updateCourse = catchAsyncErrors(async (req, res, next) => {
 // Get all courses for employer
 exports.getAllEmployerCourses = catchAsyncErrors(async (req, res, next) => {
   const resultPerPage = 15;
-  const courseCount = await Course.countDocuments({ postedBy: req.user.id });
+
+  const courseCount = await Course.countDocuments({
+    postedBy: req.user.id,
+  });
 
   const apiFeature = new ApiFeatures(
     Course.find({ postedBy: req.user.id }),
     req.query
   )
     .search()
-    .filter()
-    .pagination(resultPerPage);
+    .filter();
+
+  // sorting here (latest first)
+  apiFeature.query = apiFeature.query.sort({ createdAt: -1 });
+
+  // Then apply pagination
+  apiFeature.pagination(resultPerPage);
+
   const courses = await apiFeature.query;
 
   res.status(200).json({
@@ -288,7 +297,7 @@ exports.getAllEmployerCourses = catchAsyncErrors(async (req, res, next) => {
 exports.applyOnCourse = catchAsyncErrors(async (req, res, next) => {
   const course = await Course.findById(req.params.id).populate(
     "postedBy",
-    "name email"
+    "name email",
   );
 
   const employer = course.postedBy.email;
@@ -303,10 +312,12 @@ exports.applyOnCourse = catchAsyncErrors(async (req, res, next) => {
   // Check if the user has already applied
   if (
     course.applicants.find(
-      (applicant) => applicant.employee.toString() === userId
+      (applicant) => applicant.employee.toString() === userId,
     )
   ) {
-    return next(new ErrorHandler("You have already applied for this course", 500));
+    return next(
+      new ErrorHandler("You have already applied for this course", 500),
+    );
   }
 
   // Add the user's ID to the applicants array
@@ -358,12 +369,12 @@ Best regards,
   await sendEmail(
     employer,
     "New Application Received",
-    emailMessageForEmployer
+    emailMessageForEmployer,
   );
   await sendEmail(
     "medhrplus@gmail.com",
     "New Application Received",
-    emailMessageForAdmin
+    emailMessageForAdmin,
   );
 
   res.status(200).json({
