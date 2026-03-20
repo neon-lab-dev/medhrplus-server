@@ -56,22 +56,67 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
     otp_expiry: new Date(Date.now() + process.env.OTP_EXPIRE * 60 * 1000),
   });
 
-  const emailMessage = `Dear ${user.full_name},
+  const emailMessage = `
+<div style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,sans-serif;">
+  <div style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+    
+    <!-- Header -->
+    <div style="background:#f9533a;padding:20px;text-align:center;color:#ffffff;">
+      <h2 style="margin:0;">Med HR Plus</h2>
+      <p style="margin:5px 0 0;font-size:14px;">Account Verification</p>
+    </div>
 
-Thank you for choosing MedHR Plus! 🏆
+    <!-- Body -->
+    <div style="padding:30px;">
+      
+      <p style="font-size:16px;color:#333;margin-bottom:10px;">
+        Dear ${user.full_name},
+      </p>
 
-To ensure the security of your account and expedite your registration process, please verify your account by entering the following One-Time Password (OTP):
+      <p style="font-size:15px;color:#555;line-height:1.6;">
+        Thank you for choosing <strong>Med HR Plus</strong> 🏆
+      </p>
 
-OTP: ${otp}
+      <p style="font-size:15px;color:#555;line-height:1.6;">
+        To ensure the security of your account and complete your registration,
+        please use the OTP below:
+      </p>
 
-This OTP is exclusively for you and will expire after a limited time. 
-  
-Thank you for your trust in MeDHr Plus. We can't wait to see you in action!
+      <!-- OTP BOX -->
+      <div style="margin:30px 0;text-align:center;">
+        <div style="display:inline-block;padding:15px 25px;background:#fff5f3;border:2px dashed #f9533a;border-radius:8px;">
+          <p style="margin:0;font-size:13px;color:#777;">Your OTP Code</p>
+          <h1 style="margin:10px 0;color:#f9533a;letter-spacing:5px;">
+            ${otp}
+          </h1>
+        </div>
+      </div>
 
-Best regards,
+      <p style="font-size:14px;color:#777;">
+        This OTP is valid for a limited time. Please do not share it with anyone.
+      </p>
 
-MedHR Plus 🏅
-    `;
+      <p style="font-size:15px;color:#555;line-height:1.6;">
+        Thank you for your trust in Med HR Plus. We can't wait to see you in action!
+      </p>
+
+      <br/>
+
+      <p style="font-size:15px;color:#333;">
+        Best regards,<br/>
+        <strong>Team Med HR Plus</strong>
+      </p>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#fafafa;padding:15px;text-align:center;font-size:12px;color:#999;">
+      © ${new Date().getFullYear()} Med HR Plus. All rights reserved.
+    </div>
+
+  </div>
+</div>
+`;
 
   await sendEmail(email, "Verify your account", emailMessage);
 
@@ -103,18 +148,49 @@ exports.verify = catchAsyncErrors(async (req, res, next) => {
 
   await user.save();
 
-  const emailMessage = `Dear ${user.full_name},
+  const emailMessage = `
+<div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+  <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 8px;">
+    
+    <p style="font-size: 16px; color: #333;">
+      Dear ${user.full_name},
+    </p>
 
-Thank you for choosing MedHR+! 🏆
+    <p style="font-size: 15px; color: #555;">
+      Warm regards from <strong>Med HR Plus</strong> 
+      (Ms. Monchi Health & Education Consultancy LLP)
+    </p>
 
-You are a Verified User Start Your JOb/Internship search. 
-  
-Thank you for your trust in Carrer Hub. We can't wait to see you in action!
+    <p style="font-size: 15px; color: #555;">
+      We wish you well and encourage you to continue developing your profession in the medical field.
+    </p>
 
-Best regards,
+    <p style="font-size: 15px; color: #555;">
+      We appreciate you selecting us. We guarantee that we will assist you in better shaping your career.
+      For further chances and updates on internships, jobs, skill programs, courses, and events, please remember to check our website: <a href="https://www.medhrplus.com" style="color: #f9533a; font-weight: bold;">
+        www.medhrplus.com
+      </a>
+    </p>
 
-MedHR+ 🏅
-    `;
+    <p style="font-size: 15px; color: #555;">
+      Since you are a Verified User, we assume you have accepted all of 
+      <a href="https://www.medhrplus.com" style="color: #f9533a;">www.medhrplus.com</a>'s terms and conditions.
+    </p>
+
+    <p style="font-size: 15px; color: #555;">
+      I appreciate your confidence. We are eager to watch you in action!
+    </p>
+
+    <br/>
+
+    <p style="font-size: 15px; color: #333;">
+      Warm regards,<br/>
+      <strong>Team MedHrPlus</strong>
+    </p>
+
+  </div>
+</div>
+`;
 
   await sendEmail(user.email, "Welcome To MedHR+", emailMessage);
 

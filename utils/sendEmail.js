@@ -14,10 +14,10 @@ const sendEmail = async (to, subject, text) => {
   });
 
   await transporter.sendMail({
-    to,
-    subject,
-    text,
-  });
+  to,
+  subject,
+  html: text,
+});
 };
 
 module.exports = sendEmail;
