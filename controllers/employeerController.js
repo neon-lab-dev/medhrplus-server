@@ -120,7 +120,7 @@ exports.registerEmployeer = catchAsyncErrors(async (req, res, next) => {
 </div>
 `;
 
-  await sendEmail(email, "Verify your account", emailMessage);
+  await sendEmail(email, "Welcome Onboaring MEDHR OTP verification", emailMessage);
 
   res.status(201).json({
     success: true,
